@@ -1,0 +1,36 @@
+﻿@using MudBlazor
+
+<MudNavMenu Dense="true">
+
+    <MudNavLink Href="/dashboard"
+                Icon="@Icons.Material.Filled.Dashboard"
+                Match="NavLinkMatch.All"
+                IconColor="Color.Primary">
+        Dashboard
+    </MudNavLink>
+
+    <MudNavGroup Title="Analytics"
+                 Icon="@Icons.Material.Filled.ShowChart"
+                 IconColor="Color.Info">
+
+        <MudNavLink Href="/production-trend"
+                    Icon="@Icons.Material.Filled.Timeline"
+                    IconColor="Color.Primary">
+            Production Trend
+        </MudNavLink>
+
+    </MudNavGroup>
+
+    <MudNavGroup Title="System"
+                 Icon="@Icons.Material.Filled.Settings"
+                 IconColor="Color.Warning">
+
+        <MudNavLink Href="/health"
+                    Icon="@Icons.Material.Filled.HealthAndSafety"
+                    IconColor="Color.Success">
+            Health Check
+        </MudNavLink>
+
+    </MudNavGroup>
+
+</MudNavMenu>

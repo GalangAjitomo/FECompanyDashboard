@@ -1,0 +1,68 @@
+﻿@layout LoginLayout
+@page "/"
+@using FECompanyDashboard.Models
+@using FECompanyDashboard.Services
+@using MudBlazor
+@inject AuthService AuthService
+@inject NavigationManager Nav
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="d-flex justify-center mt-12">
+    <MudPaper Elevation="4" Class="pa-6" Style="width: 420px;">
+        <MudText Typo="Typo.h5" Class="mb-4">
+            Sign In
+        </MudText>
+
+        <MudTextField @bind-Value="model.Username"
+                      Label="Username"
+                      Variant="Variant.Outlined"
+                      FullWidth />
+
+        <MudTextField @bind-Value="model.Password"
+                      Label="Password"
+                      InputType="InputType.Password"
+                      Variant="Variant.Outlined"
+                      FullWidth
+                      Class="mt-3" />
+
+        @if (!string.IsNullOrEmpty(error))
+        {
+            <MudAlert Severity="Severity.Error" Class="mt-3">
+                @error
+            </MudAlert>
+        }
+
+        <MudButton Color="Color.Primary"
+                   Variant="Variant.Filled"
+                   FullWidth
+                   Class="mt-4"
+                   OnClick="Submit">
+            Login
+        </MudButton>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private LoginRequest model = new();
+    private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (await AuthService.IsAuthenticatedAsync())
+        {
+            Nav.NavigateTo("/dashboard", true);
+        }
+    }
+
+    private async Task Submit()
+    {
+        // var success = await AuthService.LoginAsync(model);
+
+        // if (!success)
+        // {
+        //     error = "Invalid username or password";
+        //     return;
+        // }
+
+        Nav.NavigateTo("/dashboard", true);
+    }
+}

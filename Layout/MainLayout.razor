@@ -1,0 +1,72 @@
+﻿@using FECompanyDashboard.Services
+@using MudBlazor
+@inject NavigationManager Nav
+@inject AuthService AuthService
+@inherits LayoutComponentBase
+
+<MudLayout>
+
+    <!-- APP BAR -->
+    <MudAppBar Elevation="1">
+
+        <!-- MENU ICON -->
+        <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                       Color="Color.Inherit"
+                       Edge="Edge.Start"
+                       OnClick="DrawerToggle" />
+
+        <MudText Typo="Typo.h6" Class="ml-2">
+            Company Operations Dashboard
+        </MudText>
+
+        <MudSpacer />
+
+        <!-- USER MENU -->
+        <MudMenu Variant="Variant.Text"
+                 Color="Color.Inherit"
+                 Icon="@Icons.Material.Filled.Person">
+            <MudMenuItem Icon="@Icons.Material.Filled.Logout"
+                         OnClick="Logout">
+                Logout
+            </MudMenuItem>
+        </MudMenu>
+
+    </MudAppBar>
+
+    <!-- SIDE DRAWER -->
+    <MudDrawer @bind-Open="_drawerOpen"
+               Variant="DrawerVariant.Persistent"
+               Elevation="2"
+               Anchor="Anchor.Start">
+
+        <MudDrawerHeader Class="pa-4">
+            <MudDrawerHeader>
+                <MudImage Src="img/logo.png" Alt="logo" Height="40" />
+            </MudDrawerHeader>
+        </MudDrawerHeader>
+
+        <NavMenu />
+
+    </MudDrawer>
+
+    <!-- MAIN CONTENT -->
+    <MudMainContent Class="p-4">
+        @Body
+    </MudMainContent>
+
+</MudLayout>
+
+@code {
+    private bool _drawerOpen = true;
+
+    private void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
+    private async Task Logout()
+    {
+        await AuthService.LogoutAsync();
+        Nav.NavigateTo("/login", true);
+    }
+}

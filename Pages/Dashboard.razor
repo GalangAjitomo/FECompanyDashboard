@@ -1,0 +1,141 @@
+﻿@page "/dashboard"
+@using MudBlazor
+@inject IJSRuntime JS
+
+@if (IsLoading)
+{
+    <div class="loader-overlay">
+        <div class="loader"></div>
+    </div>
+}
+
+<MudGrid Class="mt-4">
+
+    <!-- TITLE -->
+    <MudItem Class="mt-2" xs="12">
+        <MudText Typo="Typo.h5" Align="Align.Center">
+            <b>Petrochemical Production Overview</b>
+        </MudText>
+        <MudText Typo="Typo.subtitle2" Align="Align.Center" Color="Color.Secondary">
+            Ethylene & Polyethylene Plant Performance
+        </MudText>
+    </MudItem>
+
+    <!-- DAILY ETHYLENE -->
+    <MudItem xs="12" md="6">
+        <MudPaper Class="pa-4" Style="height:340px;">
+            <h3>Daily Ethylene Production <small>(Ton/Day)</small></h3>
+            <div class="chart-inner" style="height:260px;">
+                <canvas id="ethyleneDailyChart"></canvas>
+            </div>
+        </MudPaper>
+    </MudItem>
+
+    <!-- MONTHLY POLYETHYLENE -->
+    <MudItem xs="12" md="6">
+        <MudPaper Class="pa-4" Style="height:340px;">
+            <h3>Monthly Polyethylene Output <small>(Ton)</small></h3>
+            <div class="chart-inner" style="height:260px;">
+                <canvas id="peMonthlyChart"></canvas>
+            </div>
+        </MudPaper>
+    </MudItem>
+
+    <!-- ACTUAL VS CAPACITY -->
+    <MudItem xs="12" md="8">
+        <MudPaper Class="pa-4" Style="height:340px;">
+            <h3>Ethylene Actual vs Design Capacity</h3>
+            <div class="chart-inner" style="height:260px;">
+                <canvas id="capacityChart"></canvas>
+            </div>
+        </MudPaper>
+    </MudItem>
+
+    <!-- PRODUCT YIELD -->
+    <MudItem xs="12" md="4">
+        <MudPaper Class="pa-4" Style="height:340px;">
+            <h3>Product Yield Distribution (%)</h3>
+            <div class="chart-inner" style="height:260px;">
+                <canvas id="yieldChart"></canvas>
+            </div>
+        </MudPaper>
+    </MudItem>
+
+</MudGrid>
+
+@code {
+    private bool IsLoading = true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        await Task.Delay(600);
+
+        // 1️⃣ DAILY ETHYLENE (LINE)
+        await JS.InvokeVoidAsync("productionCharts.drawLine", "ethyleneDailyChart", new
+        {
+            labels = new[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" },
+            datasets = new[]
+            {
+                new {
+                    label = "Ethylene Actual",
+                    data = new[] { 820, 845, 830, 860, 880, 870, 890 },
+                    borderColor = "#006CB8",
+                    backgroundColor = "rgba(0,108,184,0.15)",
+                    fill = true,
+                    pointRadius = 4
+                }
+            }
+        });
+
+        // 2️⃣ MONTHLY POLYETHYLENE (BAR)
+        await JS.InvokeVoidAsync("productionCharts.drawBar", "peMonthlyChart", new
+        {
+            labels = new[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun" },
+            datasets = new[]
+            {
+                new {
+                    label = "Polyethylene",
+                    data = new[] { 32000, 30000, 34000, 36000, 38000, 40000 },
+                    backgroundColor = "#4CAF50"
+                }
+            }
+        });
+
+        // 3️⃣ ACTUAL VS DESIGN CAPACITY
+        await JS.InvokeVoidAsync("productionCharts.drawBar", "capacityChart", new
+        {
+            labels = new[] { "Week 1", "Week 2", "Week 3", "Week 4" },
+            datasets = new[]
+            {
+                new {
+                    label = "Actual",
+                    data = new[] { 900, 980, 1020, 1100 },
+                    backgroundColor = "#2196F3"
+                },
+                new {
+                    label = "Design Capacity",
+                    data = new[] { 1000, 1000, 1000, 1000 },
+                    backgroundColor = "#FFC107"
+                }
+            }
+        });
+
+        // 4️⃣ PRODUCT YIELD
+        await JS.InvokeVoidAsync("productionCharts.drawDonut", "yieldChart", new
+        {
+            labels = new[] { "Ethylene", "Propylene", "C4+" },
+            datasets = new[]
+            {
+                new {
+                    data = new[] { 55, 30, 15 },
+                    backgroundColor = new[] { "#2196F3", "#4CAF50", "#FFC107" }
+                }
+            }
+        });
+
+        IsLoading = false;
+        await InvokeAsync(StateHasChanged);
+    }
+}
