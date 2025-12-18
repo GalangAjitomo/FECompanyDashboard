@@ -62,7 +62,10 @@
             error = "Invalid username or password";
             return;
         }
+        else
+        {
+            Nav.NavigateTo("/dashboard", true);
+        }
 
-        Nav.NavigateTo("/dashboard", true);
     }
 }
