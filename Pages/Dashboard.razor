@@ -1,6 +1,12 @@
 ﻿@page "/dashboard"
+@attribute [Authorize]
+
+@using FECompanyDashboard.Models
+@using FECompanyDashboard.Services
+@using Microsoft.AspNetCore.Authorization
 @using MudBlazor
 @inject IJSRuntime JS
+@inject ProductionService Production
 
 @if (IsLoading)
 {
@@ -12,7 +18,7 @@
 <MudGrid Class="mt-4">
 
     <!-- TITLE -->
-    <MudItem Class="mt-2" xs="12">
+    <MudItem xs="12">
         <MudText Typo="Typo.h5" Align="Align.Center">
             <b>Petrochemical Production Overview</b>
         </MudText>
@@ -24,7 +30,7 @@
     <!-- DAILY ETHYLENE -->
     <MudItem xs="12" md="6">
         <MudPaper Class="pa-4" Style="height:340px;">
-            <h3>Daily Ethylene Production <small>(Ton/Day)</small></h3>
+            <h3>Daily Ethylene Production (Ton/Day)</h3>
             <div class="chart-inner" style="height:260px;">
                 <canvas id="ethyleneDailyChart"></canvas>
             </div>
@@ -34,7 +40,7 @@
     <!-- MONTHLY POLYETHYLENE -->
     <MudItem xs="12" md="6">
         <MudPaper Class="pa-4" Style="height:340px;">
-            <h3>Monthly Polyethylene Output <small>(Ton)</small></h3>
+            <h3>Monthly Polyethylene Output (Ton)</h3>
             <div class="chart-inner" style="height:260px;">
                 <canvas id="peMonthlyChart"></canvas>
             </div>
@@ -64,23 +70,40 @@
 </MudGrid>
 
 @code {
+
     private bool IsLoading = true;
+    private bool _chartsRendered = false;
+
+    List<TrendPoint> Daily = new();
+    List<TrendPoint> Monthly = new();
+    List<CapacityDto> Capacity = new();
+    List<YieldDto> Yield = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // 🔐 API calls (JWT already handled in ProductionService)
+        Daily = await Production.GetDailyTrendAsync();
+        Monthly = await Production.GetMonthlyTrendAsync();
+        Capacity = await Production.GetCapacityAsync();
+        Yield = await Production.GetYieldAsync();
+
+        IsLoading = false;
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender) return;
+        if (_chartsRendered || IsLoading) return;
+        _chartsRendered = true;
 
-        await Task.Delay(600);
-
-        // 1️⃣ DAILY ETHYLENE (LINE)
+        // 1️⃣ DAILY LINE
         await JS.InvokeVoidAsync("productionCharts.drawLine", "ethyleneDailyChart", new
         {
-            labels = new[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" },
+            labels = Daily.Select(x => x.Date).ToArray(),
             datasets = new[]
             {
                 new {
                     label = "Ethylene Actual",
-                    data = new[] { 820, 845, 830, 860, 880, 870, 890 },
+                    data = Daily.Select(x => x.Value).ToArray(),
                     borderColor = "#006CB8",
                     backgroundColor = "rgba(0,108,184,0.15)",
                     fill = true,
@@ -89,53 +112,50 @@
             }
         });
 
-        // 2️⃣ MONTHLY POLYETHYLENE (BAR)
+        // 2️⃣ MONTHLY BAR
         await JS.InvokeVoidAsync("productionCharts.drawBar", "peMonthlyChart", new
         {
-            labels = new[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun" },
+            labels = Monthly.Select(x => x.Date).ToArray(),
             datasets = new[]
             {
                 new {
                     label = "Polyethylene",
-                    data = new[] { 32000, 30000, 34000, 36000, 38000, 40000 },
+                    data = Monthly.Select(x => x.Value).ToArray(),
                     backgroundColor = "#4CAF50"
                 }
             }
         });
 
-        // 3️⃣ ACTUAL VS DESIGN CAPACITY
+        // 3️⃣ CAPACITY COMPARISON
         await JS.InvokeVoidAsync("productionCharts.drawBar", "capacityChart", new
         {
-            labels = new[] { "Week 1", "Week 2", "Week 3", "Week 4" },
+            labels = Capacity.Select(x => x.Label).ToArray(),
             datasets = new[]
             {
                 new {
                     label = "Actual",
-                    data = new[] { 900, 980, 1020, 1100 },
+                    data = Capacity.Select(x => x.Actual).ToArray(),
                     backgroundColor = "#2196F3"
                 },
                 new {
                     label = "Design Capacity",
-                    data = new[] { 1000, 1000, 1000, 1000 },
+                    data = Capacity.Select(x => x.Capacity).ToArray(),
                     backgroundColor = "#FFC107"
                 }
             }
         });
 
-        // 4️⃣ PRODUCT YIELD
+        // 4️⃣ YIELD DONUT
         await JS.InvokeVoidAsync("productionCharts.drawDonut", "yieldChart", new
         {
-            labels = new[] { "Ethylene", "Propylene", "C4+" },
+            labels = Yield.Select(x => x.Product).ToArray(),
             datasets = new[]
             {
                 new {
-                    data = new[] { 55, 30, 15 },
+                    data = Yield.Select(x => x.Percentage).ToArray(),
                     backgroundColor = new[] { "#2196F3", "#4CAF50", "#FFC107" }
                 }
             }
         });
-
-        IsLoading = false;
-        await InvokeAsync(StateHasChanged);
     }
 }

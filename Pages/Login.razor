@@ -55,13 +55,13 @@
 
     private async Task Submit()
     {
-        // var success = await AuthService.LoginAsync(model);
+        var success = await AuthService.LoginAsync(model);
 
-        // if (!success)
-        // {
-        //     error = "Invalid username or password";
-        //     return;
-        // }
+        if (!success)
+        {
+            error = "Invalid username or password";
+            return;
+        }
 
         Nav.NavigateTo("/dashboard", true);
     }

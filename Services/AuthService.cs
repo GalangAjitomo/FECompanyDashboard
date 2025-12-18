@@ -1,5 +1,6 @@
 ﻿using FECompanyDashboard.Models;
 using Microsoft.JSInterop;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
 namespace FECompanyDashboard.Services;
@@ -27,8 +28,9 @@ public class AuthService
 
         await _js.InvokeVoidAsync("localStorage.setItem", TokenKey, result!.Token);
 
+        // Optional (safe for test)
         _http.DefaultRequestHeaders.Authorization =
-            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", result.Token);
+            new AuthenticationHeaderValue("Bearer", result.Token);
 
         return true;
     }
@@ -41,8 +43,13 @@ public class AuthService
         return !string.IsNullOrWhiteSpace(token);
     }
 
+    // ✅ INI YANG KURANG
     public async Task LogoutAsync()
     {
-        await _js.InvokeVoidAsync("localStorage.removeItem", TokenKey);
+        await _js.InvokeVoidAsync(
+            "localStorage.removeItem", TokenKey);
+
+        // bersihin header biar aman
+        _http.DefaultRequestHeaders.Authorization = null;
     }
 }
